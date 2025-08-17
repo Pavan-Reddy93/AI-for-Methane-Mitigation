@@ -1,67 +1,59 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import requests
-from io import BytesIO
+
 
 st.markdown("""
 <style>
-/* App Background */
+/* Background */
 .stApp {
   background: linear-gradient(135deg, #E0F7F1 0%, #E6F8FF 50%, #FFFFFF 100%) fixed;
+  font-family: 'Inter', sans-serif;
 }
 
-/* Font */
-html, body, [class*="css"] {
-  font-family: 'Inter', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Headings */
+/* Title */
 h1, h2, h3 {
-  color: #064E3B;
-  letter-spacing: 0.5px;
+  color: #14532D;
+  font-weight: 700;
 }
-h1 { font-weight: 900; }
-h2 { font-weight: 700; margin-top: 1rem; }
-h3 { font-weight: 600; }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-  background: linear-gradient(180deg, #14532D 0%, #1E7D5A 60%, #4ADE80 100%);
-  color: #ffffff;
-  padding: 10px;
-}
-section[data-testid="stSidebar"] h2 {
-  color: #F0FDF4 !important;
-  font-size: 1.2rem;
-  border-bottom: 1px solid #A7F3D0;
-  padding-bottom: 6px;
-  margin-bottom: 12px;
+    background: linear-gradient(180deg, #064e3b, #0d9488);
+    padding: 20px;
 }
 
-/* Buttons */
-.stButton>button, .stDownloadButton>button {
-  background: linear-gradient(90deg, #22c55e 0%, #10b981 50%, #06b6d4 100%) !important;
-  color: white !important;
-  font-weight: bold !important;
-  border-radius: 14px !important;
-  border: none !important;
-  padding: 0.6rem 1rem !important;
-  transition: transform 0.1s ease, filter 0.2s ease;
-  box-shadow: 0 8px 16px rgba(16,185,129,0.35);
-}
-.stButton>button:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
+/* Sidebar heading */
+.nav-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 15px;
 }
 
-/* Sections */
+/* Sidebar items */
+.nav-item {
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 8px 0;
+    font-size: 16px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+.nav-item:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateX(5px);
+}
+
+/* Cards */
 div[data-testid="stVerticalBlock"] > div:has(.stMarkdown),
 div[data-testid="stVerticalBlock"] > div:has(.stDataFrame),
 div[data-testid="stVerticalBlock"] > div:has(.stPlotlyChart),
-div[data-testid="stVerticalBlock"] > div:has(.stImage),
 div[data-testid="stVerticalBlock"] > div:has(canvas) {
   background: #ffffff;
   border: 1px solid #d1fae5;
@@ -71,18 +63,14 @@ div[data-testid="stVerticalBlock"] > div:has(canvas) {
   margin-bottom: 20px;
 }
 
-/* File uploader */
-[data-testid="stFileUploader"] section {
-  border-radius: 14px !important;
-  border: 2px dashed #86efac !important;
-  background-color: #f0fdf4 !important;
+/* Inputs */
+input, textarea, select {
+  border-radius: 10px !important;
+  border: 1px solid #bbf7d0 !important;
 }
-
-/* Table headers */
-.stDataFrame [data-testid="stTable"] th {
-  background: #d1fae5 !important;
-  color: #065f46 !important;
-  font-weight: bold !important;
+input:focus, textarea:focus, select:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.15) !important;
 }
 
 /* Footer */
@@ -90,90 +78,69 @@ footer {
   visibility: visible;
 }
 footer:after {
-  content: '🌱 Developed by EcoThane Team - 1M1B Green Interns';
+  content: ' Developed by Ecothane Team - 1M1B Green Interns';
   display: block;
   text-align: center;
-  color: #065f46;
+  padding: 10px;
   font-size: 14px;
-  font-weight: 600;
-  padding: 15px;
+  color: #065f46;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🌍 AI for Methane Mitigation: A Dashboard for Emissions Forecasting and Biowaste Optimization")
+st.sidebar.markdown('<div class="nav-title">📌 Navigation</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="nav-item">📂 Upload your dataset</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="nav-item">⚙️ Select analysis options</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="nav-item">📊 Generate visualization</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="nav-item">🤖 Ask AI for report</div>', unsafe_allow_html=True)
+st.sidebar.markdown('<div class="nav-item">⬇️ Download insights</div>', unsafe_allow_html=True)
 
-# Load an online methane-related banner image
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Methane-Emission.jpg/640px-Methane-Emission.jpg"
+
 try:
-    response = requests.get(img_url)
-    st.image(BytesIO(response.content), use_column_width=True)
+    st.image(
+        "https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=1350&q=80",
+        use_container_width=True,
+        caption="Methane Emissions & Biowaste Optimization Dashboard"
+    )
 except:
-    st.warning("Could not load banner image. Please check internet connection.")
+    st.warning(" Could not load banner image. Please check your internet connection.")
 
+st.title(" AI for Methane Mitigation: A Dashboard for Emissions Forecasting and Biowaste Optimization")
 st.write("Analyze methane and greenhouse gas emissions data, generate insights, and create downloadable reports.")
 
 
-st.sidebar.header("📌 Navigation")
-st.sidebar.markdown("- Upload your dataset")
-st.sidebar.markdown("- Select analysis options")
-st.sidebar.markdown("- Generate visualization")
-st.sidebar.markdown("- Ask AI for report")
-st.sidebar.markdown("- Download insights")
-
-
-uploaded_file = st.file_uploader("📂 Upload a CSV file with emission data", type=["csv"])
+uploaded_file = st.file_uploader(" Upload a CSV file with emission data", type=["csv"])
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-    st.subheader("🔎 Preview of Uploaded Data")
+    st.subheader(" Preview of Uploaded Data")
     st.dataframe(df.head())
 
-    # Column selectors
-    st.markdown("### 🛠️ Select Columns for Analysis")
-    country_col = st.selectbox("Select Country Column", df.columns, index=0)
-    year_col = st.selectbox("Select Year Column", df.columns, index=1)
-    emission_col = st.selectbox("Select Emissions Column", df.columns, index=2)
+    # Country filter
+    if "Country" in df.columns and "Year" in df.columns and "Emissions" in df.columns:
+        countries = df["Country"].unique()
+        selected_country = st.selectbox(" Select Country", countries)
 
-    # Select country
-    countries = df[country_col].dropna().unique()
-    selected_country = st.selectbox("🌐 Select Country", countries)
+        filtered_df = df[df["Country"] == selected_country]
 
-    filtered_df = df[df[country_col] == selected_country]
+        fig = px.line(filtered_df, x="Year", y="Emissions",
+                      title=f"Gas Emissions in {selected_country}", markers=True)
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Visualization
-    fig = px.line(
-        filtered_df,
-        x=year_col,
-        y=emission_col,
-        title=f"Gas Emissions in {selected_country}",
-        markers=True
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
- 
-    st.subheader("📝 Generate Report with AI")
-    user_prompt = st.text_area("Enter your prompt (e.g., 'Summarize methane trends for India between 2000-2020')")
-    
-    if user_prompt:
-        # Very basic "mock AI" summary – replace later with LLM call
-        avg_emission = filtered_df[emission_col].mean()
-        latest_year = filtered_df[year_col].max()
-        ai_report = f"**AI Report based on prompt:** {user_prompt}\n\n"
-        ai_report += f"- Country: {selected_country}\n"
-        ai_report += f"- Time Period: {filtered_df[year_col].min()} - {latest_year}\n"
-        ai_report += f"- Average {emission_col}: {avg_emission:.2f}\n"
-        ai_report += f"- Observed trend: {'increasing 📈' if filtered_df[emission_col].iloc[-1] > filtered_df[emission_col].iloc[0] else 'decreasing 📉'}\n\n"
-        ai_report += "⚡ This is an automatically generated report for policy insights and biowaste optimization."
-
-        st.markdown(ai_report)
+        # AI Report Prompt
+        st.subheader(" Ask AI for a Forensic Report")
+        user_prompt = st.text_area("Enter your custom analysis request (e.g., 'Summarize methane trends in India')")
+        if user_prompt:
+            st.success(f" AI would generate a forensic-style report for: *{user_prompt}*")
 
         # Download option
         st.download_button(
-            label="⬇️ Download Report",
-            data=ai_report.encode("utf-8"),
-            file_name=f"{selected_country}_ai_report.txt",
-            mime="text/plain"
+            label=" Download Analysis Report",
+            data=filtered_df.to_csv(index=False).encode("utf-8"),
+            file_name=f"{selected_country}_emissions_report.csv",
+            mime="text/csv"
         )
+    else:
+        st.error(" CSV must contain `Country`, `Year`, and `Emissions` columns.")
 else:
-    st.info("👉 Please upload a CSV file to start analysis.")
+    st.info(" Please upload a CSV file to start analysis.")
