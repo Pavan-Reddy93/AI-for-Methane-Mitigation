@@ -27,22 +27,23 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
-    .stButton button {
-        width: 100%;
+    /* Navigation buttons */
+    .nav-button {
+        display: block;
+        text-align: center;
         font-weight: bold;
         font-size: 16px;
-        margin-bottom: 12px;
-        color: white;
-        border-radius: 12px;
         padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 12px;
+        color: white !important;
+        text-decoration: none;
     }
-
-    /* Different button colors */
-    .upload-btn button { background: linear-gradient(90deg, #f59e0b, #fbbf24); }   /* Yellow */
-    .analysis-btn button { background: linear-gradient(90deg, #3b82f6, #60a5fa); } /* Blue */
-    .viz-btn button { background: linear-gradient(90deg, #10b981, #34d399); }      /* Green */
-    .ai-btn button { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }       /* Purple */
-    .download-btn button { background: linear-gradient(90deg, #ef4444, #f87171); } /* Red */
+    .upload-btn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }   /* Yellow */
+    .analysis-btn { background: linear-gradient(90deg, #3b82f6, #60a5fa); } /* Blue */
+    .viz-btn { background: linear-gradient(90deg, #10b981, #34d399); }      /* Green */
+    .ai-btn { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }       /* Purple */
+    .download-btn { background: linear-gradient(90deg, #ef4444, #f87171); } /* Red */
 
     /* Footer */
     .footer {
@@ -61,29 +62,25 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
 st.sidebar.markdown("<div class='sidebar-title'> Navigation</div>", unsafe_allow_html=True)
 
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-if st.sidebar.button("📂 Upload dataset", key="upload", help="Upload CSV file"):
-    st.session_state.page = "upload"
-
-if st.sidebar.button("⚙️ Select analysis options", key="analysis", help="Choose type of analysis"):
-    st.session_state.page = "analysis"
-
-if st.sidebar.button("📊 Generate visualization", key="viz", help="Visualize dataset"):
-    st.session_state.page = "viz"
-
-if st.sidebar.button("🤖 Ask AI for report", key="ai", help="Enter prompt to generate report"):
-    st.session_state.page = "ai"
-
-if st.sidebar.button("⬇️ Download insights", key="download", help="Download report"):
-    st.session_state.page = "download"
+# Use markdown links styled as buttons
+st.sidebar.markdown(f"<a class='nav-button upload-btn' href='?page=upload'>📂 Upload dataset</a>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<a class='nav-button analysis-btn' href='?page=analysis'>⚙️ Select analysis options</a>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<a class='nav-button viz-btn' href='?page=viz'>📊 Generate visualization</a>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<a class='nav-button ai-btn' href='?page=ai'>🤖 Ask AI for report</a>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<a class='nav-button download-btn' href='?page=download'>⬇️ Download insights</a>", unsafe_allow_html=True)
 
 
-st.markdown("<h1 style='text-align:center;'> AI for Methane Mitigation: A Dashboard for Emissions Forecasting and Biowaste Optimization</h1>", unsafe_allow_html=True)
+query_params = st.experimental_get_query_params()
+if "page" in query_params:
+    st.session_state.page = query_params["page"][0]
+
+
+st.markdown("<h1 style='text-align:center;'>🌍 AI for Methane Mitigation: A Dashboard for Emissions Forecasting and Biowaste Optimization</h1>", unsafe_allow_html=True)
 
 
 uploaded_file = None
@@ -128,7 +125,6 @@ elif st.session_state.page == "ai":
 elif st.session_state.page == "download":
     st.subheader(" Download Insights")
     st.download_button("Download Report (TXT)", "This is a sample report.", file_name="report.txt")
-
 
 st.markdown("""
     <div class="footer">
