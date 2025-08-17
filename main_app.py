@@ -101,33 +101,47 @@ footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
+
 st.title(" Gas Emission Analyzer")
 st.write("Analyze greenhouse gas emissions data and visualize trends for sustainability insights.")
 
-
-uploaded_file = st.file_uploader("Upload a CSV file with gas emission data", type=["csv"])
+# Upload CSV
+uploaded_file = st.file_uploader("📂 Upload a CSV file with gas emission data", type=["csv"])
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-    st.subheader("Preview of Uploaded Data")
+    st.subheader("🔎 Preview of Uploaded Data")
     st.dataframe(df.head())
 
-    countries = df["Country"].unique()
-    selected_country = st.selectbox("Select Country", countries)
+    # Column selectors to make app flexible
+    st.markdown("### 🛠️ Select Columns for Analysis")
+    country_col = st.selectbox("Select Country Column", df.columns, index=0)
+    year_col = st.selectbox("Select Year Column", df.columns, index=1)
+    emission_col = st.selectbox("Select Emissions Column", df.columns, index=2)
 
- 
-    filtered_df = df[df["Country"] == selected_country]
+    # Choose country
+    countries = df[country_col].dropna().unique()
+    selected_country = st.selectbox("🌐 Select Country", countries)
 
-   
-    fig = px.line(filtered_df, x="Year", y="Emissions", title=f"Gas Emissions in {selected_country}", markers=True)
+    # Filter dataframe
+    filtered_df = df[df[country_col] == selected_country]
+
+    # Plot line chart
+    fig = px.line(
+        filtered_df,
+        x=year_col,
+        y=emission_col,
+        title=f"Gas Emissions in {selected_country}",
+        markers=True
+    )
     st.plotly_chart(fig, use_container_width=True)
 
-
+    # Download button
     st.download_button(
-        label=" Download Analysis Report",
+        label="⬇️ Download Analysis Report",
         data=filtered_df.to_csv(index=False).encode("utf-8"),
         file_name=f"{selected_country}_emissions_report.csv",
         mime="text/csv"
     )
 else:
-    st.info("Please upload a CSV file to start the analysis.")
+    st.info("👉 Please upload a CSV file to start the analysis.")
