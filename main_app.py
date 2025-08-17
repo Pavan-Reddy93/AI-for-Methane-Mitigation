@@ -9,7 +9,6 @@ st.set_page_config(
     layout="wide"
 )
 
-
 st.markdown("""
     <style>
     .stApp { background: linear-gradient(to right, #e0f7fa, #f1f8e9); }
@@ -38,6 +37,7 @@ st.markdown("""
         border-radius: 12px;
         color: white !important;
         text-decoration: none;
+        cursor: pointer;
     }
     .upload-btn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }   /* Yellow */
     .analysis-btn { background: linear-gradient(90deg, #3b82f6, #60a5fa); } /* Blue */
@@ -63,31 +63,37 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-st.sidebar.markdown("<div class='sidebar-title'> Navigation</div>", unsafe_allow_html=True)
-
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-# Use markdown links styled as buttons
-st.sidebar.markdown(f"<a class='nav-button upload-btn' href='?page=upload'>📂 Upload dataset</a>", unsafe_allow_html=True)
-st.sidebar.markdown(f"<a class='nav-button analysis-btn' href='?page=analysis'>⚙️ Select analysis options</a>", unsafe_allow_html=True)
-st.sidebar.markdown(f"<a class='nav-button viz-btn' href='?page=viz'>📊 Generate visualization</a>", unsafe_allow_html=True)
-st.sidebar.markdown(f"<a class='nav-button ai-btn' href='?page=ai'>🤖 Ask AI for report</a>", unsafe_allow_html=True)
-st.sidebar.markdown(f"<a class='nav-button download-btn' href='?page=download'>⬇️ Download insights</a>", unsafe_allow_html=True)
 
+st.sidebar.markdown("<div class='sidebar-title'> Navigation</div>", unsafe_allow_html=True)
 
-query_params = st.query_params  
-if "page" in query_params:
-    st.session_state.page = query_params["page"]
+if st.sidebar.button("📂 Upload dataset", key="upload"):
+    st.session_state.page = "upload"
+
+if st.sidebar.button("⚙️ Select analysis options", key="analysis"):
+    st.session_state.page = "analysis"
+
+if st.sidebar.button("📊 Generate visualization", key="viz"):
+    st.session_state.page = "viz"
+
+if st.sidebar.button("🤖 Ask AI for report", key="ai"):
+    st.session_state.page = "ai"
+
+if st.sidebar.button(" Download insights", key="download"):
+    st.session_state.page = "download"
 
 
 st.markdown("<h1 style='text-align:center;'>🌍 AI for Methane Mitigation: A Dashboard for Emissions Forecasting and Biowaste Optimization</h1>", unsafe_allow_html=True)
 
+if "uploaded_file" not in st.session_state:
+    st.session_state.uploaded_file = None
 
-uploaded_file = None
 if st.session_state.page == "upload":
     uploaded_file = st.file_uploader(" Upload a CSV file with emission data", type=["csv"])
     if uploaded_file:
+        st.session_state.uploaded_file = uploaded_file
         try:
             df = pd.read_csv(uploaded_file)
             st.success(" File uploaded successfully!")
@@ -102,8 +108,8 @@ elif st.session_state.page == "analysis":
 
 elif st.session_state.page == "viz":
     st.subheader(" Generate Visualization")
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
+    if st.session_state.uploaded_file:
+        df = pd.read_csv(st.session_state.uploaded_file)
         col_options = df.columns.tolist()
         x_axis = st.selectbox("Select X-axis:", col_options)
         y_axis = st.selectbox("Select Y-axis:", col_options)
