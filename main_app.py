@@ -62,6 +62,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
 st.sidebar.markdown("<div class='sidebar-title'> Navigation</div>", unsafe_allow_html=True)
 
 if "page" not in st.session_state:
@@ -75,9 +76,9 @@ st.sidebar.markdown(f"<a class='nav-button ai-btn' href='?page=ai'>🤖 Ask AI f
 st.sidebar.markdown(f"<a class='nav-button download-btn' href='?page=download'>⬇️ Download insights</a>", unsafe_allow_html=True)
 
 
-query_params = st.experimental_get_query_params()
+query_params = st.query_params  
 if "page" in query_params:
-    st.session_state.page = query_params["page"][0]
+    st.session_state.page = query_params["page"]
 
 
 st.markdown("<h1 style='text-align:center;'>🌍 AI for Methane Mitigation: A Dashboard for Emissions Forecasting and Biowaste Optimization</h1>", unsafe_allow_html=True)
@@ -118,7 +119,7 @@ elif st.session_state.page == "ai":
     if st.button("Generate Report"):
         if user_prompt.strip():
             st.success(f" Report generated for prompt: {user_prompt}")
-            st.write(" (AI report content will go here...)")
+            st.write(" (AI-generated report content placeholder...)")
         else:
             st.warning(" Please enter a prompt first.")
 
