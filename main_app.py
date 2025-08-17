@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+
 st.set_page_config(
     page_title="AI for Methane Mitigation",
     page_icon="🌍",
@@ -25,6 +26,7 @@ st.markdown("""
         text-align: center;
         margin-bottom: 20px;
     }
+
     .stButton button {
         width: 100%;
         font-weight: bold;
@@ -34,11 +36,13 @@ st.markdown("""
         border-radius: 12px;
         padding: 12px;
     }
-    .upload-btn button { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-    .analysis-btn button { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-    .viz-btn button { background: linear-gradient(90deg, #10b981, #34d399); }
-    .ai-btn button { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
-    .download-btn button { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+    /* Different button colors */
+    .upload-btn button { background: linear-gradient(90deg, #f59e0b, #fbbf24); }   /* Yellow */
+    .analysis-btn button { background: linear-gradient(90deg, #3b82f6, #60a5fa); } /* Blue */
+    .viz-btn button { background: linear-gradient(90deg, #10b981, #34d399); }      /* Green */
+    .ai-btn button { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }       /* Purple */
+    .download-btn button { background: linear-gradient(90deg, #ef4444, #f87171); } /* Red */
 
     /* Footer */
     .footer {
@@ -57,28 +61,30 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
 st.sidebar.markdown("<div class='sidebar-title'> Navigation</div>", unsafe_allow_html=True)
 
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-if st.sidebar.button(" Upload dataset", key="upload", help="Upload CSV file"):
+if st.sidebar.button("📂 Upload dataset", key="upload", help="Upload CSV file"):
     st.session_state.page = "upload"
 
-if st.sidebar.button(" Select analysis options", key="analysis", help="Choose type of analysis"):
+if st.sidebar.button("⚙️ Select analysis options", key="analysis", help="Choose type of analysis"):
     st.session_state.page = "analysis"
 
-if st.sidebar.button(" Generate visualization", key="viz", help="Visualize dataset"):
+if st.sidebar.button("📊 Generate visualization", key="viz", help="Visualize dataset"):
     st.session_state.page = "viz"
 
-if st.sidebar.button(" Ask AI for report", key="ai", help="Enter prompt to generate report"):
+if st.sidebar.button("🤖 Ask AI for report", key="ai", help="Enter prompt to generate report"):
     st.session_state.page = "ai"
 
-if st.sidebar.button(" Download insights", key="download", help="Download report"):
+if st.sidebar.button("⬇️ Download insights", key="download", help="Download report"):
     st.session_state.page = "download"
 
 
 st.markdown("<h1 style='text-align:center;'> AI for Methane Mitigation: A Dashboard for Emissions Forecasting and Biowaste Optimization</h1>", unsafe_allow_html=True)
+
 
 uploaded_file = None
 if st.session_state.page == "upload":
