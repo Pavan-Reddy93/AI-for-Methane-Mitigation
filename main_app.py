@@ -3,13 +3,13 @@ import pandas as pd
 import plotly.express as px
 import google.generativeai as genai
 
-# ===================== CONFIG =====================
+
 st.set_page_config(page_title="AI for Methane Mitigation", layout="wide")
 
 # Configure AI
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
-# ===================== CSS =====================
+
 st.markdown("""
 <style>
 /* Background gradient */
@@ -60,113 +60,104 @@ section[data-testid="stSidebar"] * {
 </style>
 """, unsafe_allow_html=True)
 
-# ===================== STATE =====================
+
 if "page" not in st.session_state:
     st.session_state.page = "upload"
 if "df" not in st.session_state:
     st.session_state.df = None
 
-# ===================== SIDEBAR NAV =====================
-st.sidebar.markdown("## 📌 Navigation")
-if st.sidebar.button("📂 Upload dataset", key="upload_btn", help="Upload your dataset", use_container_width=True):
-    st.session_state.page = "upload"
-if st.sidebar.button("⚙️ Select analysis options", key="analysis_btn", use_container_width=True):
-    st.session_state.page = "analysis"
-if st.sidebar.button("📊 Generate visualization", key="visual_btn", use_container_width=True):
-    st.session_state.page = "visual"
-if st.sidebar.button("🤖 Ask AI for report", key="ai_btn", use_container_width=True):
-    st.session_state.page = "ai"
-if st.sidebar.button("⬇️ Download insights", key="download_btn", use_container_width=True):
-    st.session_state.page = "download"
+st.sidebar.markdown("##  Navigation")
 
-# ===================== HEADER =====================
+if st.sidebar.button(" Upload dataset", key="upload_btn", use_container_width=True):
+    st.session_state.page = "upload"
+
+# Show rest of navigation **only if dataset is uploaded**
+if st.session_state.df is not None:
+    if st.sidebar.button("⚙️ Select analysis options", key="analysis_btn", use_container_width=True):
+        st.session_state.page = "analysis"
+    if st.sidebar.button("📊 Generate visualization", key="visual_btn", use_container_width=True):
+        st.session_state.page = "visual"
+    if st.sidebar.button("🤖 Ask AI for report", key="ai_btn", use_container_width=True):
+        st.session_state.page = "ai"
+    if st.sidebar.button("⬇️ Download insights", key="download_btn", use_container_width=True):
+        st.session_state.page = "download"
+
+
 st.title("🌍 AI for Methane Mitigation: A Dashboard for Emissions Forecasting and Biowaste Optimization")
 st.write("Analyze methane and greenhouse gas emissions data, generate insights, and create downloadable reports.")
 
-# ===================== PAGE CONTENT =====================
+
 
 # 1. UPLOAD DATA
 if st.session_state.page == "upload":
-    uploaded_file = st.file_uploader("📂 Upload a CSV file with emission data", type=["csv"])
+    uploaded_file = st.file_uploader(" Upload a CSV file with emission data", type=["csv"])
     if uploaded_file is not None:
         try:
             st.session_state.df = pd.read_csv(uploaded_file)
-            st.success("✅ Dataset uploaded successfully!")
+            st.success(" Dataset uploaded successfully!")
             st.dataframe(st.session_state.df.head())
         except Exception as e:
             st.error(f"Error reading CSV: {e}")
     else:
-        st.info("👉 Please upload a dataset to continue.")
+        st.info(" Please upload a dataset to continue.")
 
 # 2. ANALYSIS OPTIONS
 elif st.session_state.page == "analysis":
-    if st.session_state.df is None:
-        st.warning("⚠️ Please upload a dataset first.")
-    else:
-        st.subheader("⚙️ Select Analysis Options")
-        option = st.radio("Choose analysis type:", ["Descriptive Statistics", "Time Series Forecasting", "Correlation Analysis"])
+    st.subheader(" Select Analysis Options")
+    option = st.radio("Choose analysis type:", ["Descriptive Statistics", "Time Series Forecasting", "Correlation Analysis"])
 
-        if option == "Descriptive Statistics":
-            st.write(st.session_state.df.describe())
+    if option == "Descriptive Statistics":
+        st.write(st.session_state.df.describe())
 
-        elif option == "Time Series Forecasting":
-            if "Year" in st.session_state.df.columns and "Emissions" in st.session_state.df.columns:
-                fig = px.line(st.session_state.df, x="Year", y="Emissions", title="📈 Emissions Over Time")
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.error("Dataset must contain 'Year' and 'Emissions' columns.")
+    elif option == "Time Series Forecasting":
+        if "Year" in st.session_state.df.columns and "Emissions" in st.session_state.df.columns:
+            fig = px.line(st.session_state.df, x="Year", y="Emissions", title="📈 Emissions Over Time")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.error("Dataset must contain 'Year' and 'Emissions' columns.")
 
-        elif option == "Correlation Analysis":
-            numeric_df = st.session_state.df.select_dtypes(include=["number"])
-            if not numeric_df.empty:
-                st.write(numeric_df.corr())
-                fig = px.imshow(numeric_df.corr(), text_auto=True, title="🔗 Correlation Heatmap")
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.error("No numeric columns available for correlation analysis.")
+    elif option == "Correlation Analysis":
+        numeric_df = st.session_state.df.select_dtypes(include=["number"])
+        if not numeric_df.empty:
+            st.write(numeric_df.corr())
+            fig = px.imshow(numeric_df.corr(), text_auto=True, title="🔗 Correlation Heatmap")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.error("No numeric columns available for correlation analysis.")
 
 # 3. VISUALIZATION
 elif st.session_state.page == "visual":
-    if st.session_state.df is None:
-        st.warning("⚠️ Please upload a dataset first.")
+    st.subheader(" Generate Visualization")
+    countries = st.session_state.df["Country"].unique() if "Country" in st.session_state.df.columns else []
+    if len(countries) > 0:
+        selected_country = st.selectbox("Select Country", countries)
+        filtered_df = st.session_state.df[st.session_state.df["Country"] == selected_country]
+        fig = px.line(filtered_df, x="Year", y="Emissions", title=f"Gas Emissions in {selected_country}", markers=True)
+        st.plotly_chart(fig, use_container_width=True)
     else:
-        st.subheader("📊 Generate Visualization")
-        countries = st.session_state.df["Country"].unique() if "Country" in st.session_state.df.columns else []
-        if len(countries) > 0:
-            selected_country = st.selectbox("Select Country", countries)
-            filtered_df = st.session_state.df[st.session_state.df["Country"] == selected_country]
-            fig = px.line(filtered_df, x="Year", y="Emissions", title=f"Gas Emissions in {selected_country}", markers=True)
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.error("No 'Country' column found in dataset.")
+        st.error("No 'Country' column found in dataset.")
 
 # 4. AI REPORT
 elif st.session_state.page == "ai":
-    if st.session_state.df is None:
-        st.warning("⚠️ Please upload a dataset first.")
-    else:
-        st.subheader("🤖 Ask AI for Report")
-        user_prompt = st.text_input("Enter your analysis request:")
-        if st.button("Generate AI Report"):
-            if user_prompt.strip() != "":
-                try:
-                    model = genai.GenerativeModel("gemini-pro")
-                    prompt = f"You are an emissions analyst. Based on this dataset, {user_prompt}. Dataset preview:\n{st.session_state.df.head().to_string()}"
-                    response = model.generate_content(prompt)
-                    st.success(f"Report generated for prompt: {user_prompt}")
-                    st.write(response.text)
-                except Exception as e:
-                    st.error(f"AI report generation failed: {e}")
-            else:
-                st.error("Please enter a prompt.")
+    st.subheader(" Ask AI for Report")
+    user_prompt = st.text_input("Enter your analysis request:")
+    if st.button("Generate AI Report"):
+        if user_prompt.strip() != "":
+            try:
+                model = genai.GenerativeModel("gemini-pro")
+                prompt = f"You are an emissions analyst. Based on this dataset, {user_prompt}. Dataset preview:\n{st.session_state.df.head().to_string()}"
+                response = model.generate_content(prompt)
+                st.success(f"Report generated for prompt: {user_prompt}")
+                st.write(response.text)
+            except Exception as e:
+                st.error(f"AI report generation failed: {e}")
+        else:
+            st.error("Please enter a prompt.")
 
 # 5. DOWNLOAD
 elif st.session_state.page == "download":
-    if st.session_state.df is None:
-        st.warning("⚠️ Please upload a dataset first.")
-    else:
-        st.subheader("⬇️ Download Insights")
-        st.download_button("Download Full Dataset", data=st.session_state.df.to_csv(index=False).encode("utf-8"), file_name="emissions_dataset.csv", mime="text/csv")
+    st.subheader(" Download Insights")
+    st.download_button("Download Full Dataset", data=st.session_state.df.to_csv(index=False).encode("utf-8"), file_name="emissions_dataset.csv", mime="text/csv")
 
-# ===================== FOOTER =====================
-st.markdown("<div class='footer'>🌱 Developed by Ecothane Team - 1M1B Green Interns</div>", unsafe_allow_html=True)
+
+st.markdown("<div class='footer'> Developed by Ecothane Team - 1M1B Green Interns</div>", unsafe_allow_html=True)
