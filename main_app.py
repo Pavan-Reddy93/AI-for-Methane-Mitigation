@@ -1,177 +1,151 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
 import google.generativeai as genai
 import json
-import PyPDF2
+from google.oauth2 import service_account
+from google.auth.transport.requests import Request
+import pandas as pd
+import io
 
 
-st.set_page_config(page_title="AI Data Analyzer", layout="wide")
-
-# Try to load Google API key or service account
-api_key = st.secrets.get("GOOGLE_API_KEY", None)
-
-if api_key:
-    genai.configure(api_key=api_key)
-    ai_ready = True
-else:
-    try:
-        google_creds = json.loads(st.secrets["google"]["credentials"])
-        ai_ready = True
-        st.warning("No GOOGLE_API_KEY found. Using service account for GCP access.")
-    except Exception:
-        ai_ready = False
-        st.error("Google API not configured. AI features disabled.")
-
+st.set_page_config(page_title="AI for Methane Mitigation", layout="wide")
 
 st.markdown("""
     <style>
-    body {
-        background: linear-gradient(135deg, #f7faff, #e8fff1);
-    }
-    h1 {
-        text-align: center;
-        color: white;
-        font-weight: 800;
-        padding: 15px;
-        border-radius: 12px;
-        background: linear-gradient(90deg, #4A90E2, #50C878);
-    }
-    /* Navigation bar */
-    .nav-container {
-        display: flex;
-        justify-content: center;
-        margin: 20px 0;
-        gap: 15px;
-    }
-    .nav-button {
-        background: #1E90FF;
-        color: white !important;
-        padding: 10px 18px;
-        border-radius: 8px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-    .nav-button:hover {
-        background: #32CD32;
-        transform: scale(1.05);
-    }
-    .selected {
-        background: #FF8C00 !important;
-    }
-    /* Footer */
-    footer {
-        text-align: center;
-        background: linear-gradient(90deg, #1E90FF, #32CD32);
-        color: white;
-        padding: 12px;
-        border-radius: 8px;
-        margin-top: 35px;
-        font-size: 14px;
-        font-weight: 600;
-    }
+        body {
+            background-color: #f7faff;
+            font-family: 'Arial', sans-serif;
+        }
+        .title {
+            text-align: center;
+            font-size: 36px;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 20px;
+            color: #16a085;
+            margin-bottom: 30px;
+        }
+        .nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .nav button {
+            background-color: #3498db;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .nav button:hover {
+            background-color: #1abc9c;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 14px;
+            color: white;
+            background-color: #2c3e50;
+            padding: 10px;
+            border-radius: 5px;
+        }
     </style>
 """, unsafe_allow_html=True)
 
 
-st.title("AI Data Analyzer: Smart Insights from Your Files")
+st.markdown("<div class='title'> AI for Methane Mitigation</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>A Dashboard for Emissions Forecasting and Biowaste Optimization</div>", unsafe_allow_html=True)
 
 
-nav_options = ["Upload File", "Analysis Options", "Visualization", "AI Report", "Download"]
-if "nav_choice" not in st.session_state:
-    st.session_state.nav_choice = nav_options[0]
+try:
+    creds = service_account.Credentials.from_service_account_info(
+        json.loads(st.secrets["google"]["credentials"]),
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    creds.refresh(Request())
+    genai.configure(credentials=creds)
+    st.success(" Connected to Google Generative AI using Service Account")
+except Exception as e:
+    st.error(f" Failed to authenticate with Google Service Account: {e}")
 
-# Custom nav bar
-nav_html = '<div class="nav-container">'
-for option in nav_options:
-    selected_class = "nav-button selected" if st.session_state.nav_choice == option else "nav-button"
-    nav_html += f'<a href="?nav={option}" class="{selected_class}">{option}</a>'
-nav_html += '</div>'
-st.markdown(nav_html, unsafe_allow_html=True)
 
-# Handle query param navigation
-query_params = st.query_params
-if "nav" in query_params and query_params["nav"] in nav_options:
-    st.session_state.nav_choice = query_params["nav"]
 
-nav_choice = st.session_state.nav_choice
+st.markdown("<div class='nav'>", unsafe_allow_html=True)
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    if st.button(" Upload Dataset"):
+        st.session_state.page = "upload"
+with col2:
+    if st.button(" Select Analysis Options"):
+        st.session_state.page = "analysis"
+with col3:
+    if st.button(" Generate Visualization"):
+        st.session_state.page = "visualize"
+with col4:
+    if st.button(" Ask AI for Report"):
+        st.session_state.page = "report"
+st.markdown("</div>", unsafe_allow_html=True)
 
-if nav_choice == "Upload File":
-    uploaded_file = st.file_uploader("Upload a file (CSV or PDF)", type=["csv", "pdf"])
+
+if "page" not in st.session_state:
+    st.session_state.page = "upload"
+
+if st.session_state.page == "upload":
+    st.subheader("Upload Your Dataset (CSV or PDF)")
+    uploaded_file = st.file_uploader("Upload a file", type=["csv", "pdf"])
     if uploaded_file:
         if uploaded_file.type == "text/csv":
-            st.session_state.df = pd.read_csv(uploaded_file)
-            st.success("CSV uploaded and loaded successfully!")
+            df = pd.read_csv(uploaded_file)
+            st.write(" Preview of Uploaded CSV:")
+            st.dataframe(df.head())
+            st.session_state.df = df
         elif uploaded_file.type == "application/pdf":
-            pdf_reader = PyPDF2.PdfReader(uploaded_file)
-            pdf_text = ""
-            for page in pdf_reader.pages:
-                pdf_text += page.extract_text()
-            st.session_state.pdf_text = pdf_text
-            st.success("PDF uploaded successfully!")
+            from PyPDF2 import PdfReader
+            reader = PdfReader(uploaded_file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text()
+            st.text_area(" Extracted PDF Content:", text[:2000])
+            st.session_state.pdf_text = text
 
-elif nav_choice == "Analysis Options":
+elif st.session_state.page == "analysis":
+    st.subheader("Select Analysis Options")
+    options = st.multiselect("Choose analyses", ["Trend Forecasting", "Outlier Detection", "Descriptive Stats"])
+    st.write("You selected:", options)
+
+elif st.session_state.page == "visualize":
     if "df" in st.session_state:
-        option = st.radio("Choose analysis type:", ["Descriptive Statistics", "Correlation Analysis"])
-        df = st.session_state.df
-        if option == "Descriptive Statistics":
-            st.write(df.describe())
-        elif option == "Correlation Analysis":
+        st.subheader("Generate Visualization")
+        chart_type = st.selectbox("Select Chart Type", ["Line", "Bar", "Area"])
+        if chart_type == "Line":
+            st.line_chart(st.session_state.df)
+        elif chart_type == "Bar":
+            st.bar_chart(st.session_state.df)
+        elif chart_type == "Area":
+            st.area_chart(st.session_state.df)
+    else:
+        st.warning(" Please upload a CSV dataset first.")
+
+elif st.session_state.page == "report":
+    st.subheader("AI-Powered Report Generator")
+    user_prompt = st.text_area("Enter your analysis prompt:")
+    if st.button("Generate Report"):
+        if user_prompt:
             try:
-                st.write(df.corr(numeric_only=True))
-                fig, ax = plt.subplots()
-                cax = ax.matshow(df.corr(numeric_only=True), cmap="coolwarm")
-                plt.colorbar(cax)
-                st.pyplot(fig)
+                model = genai.GenerativeModel("gemini-pro")
+                response = model.generate_content(user_prompt)
+                st.success(" AI Report Generated:")
+                st.write(response.text)
             except Exception as e:
-                st.error(f"Correlation error: {e}")
-    elif "pdf_text" in st.session_state:
-        st.info("Text extracted from PDF available for AI report.")
-    else:
-        st.warning("Please upload a file first.")
+                st.error(f"AI report generation failed: {e}")
+        else:
+            st.warning(" Please enter a prompt.")
 
-elif nav_choice == "Visualization":
-    if "df" in st.session_state:
-        df = st.session_state.df
-        st.line_chart(df.select_dtypes(include='number'))
-    else:
-        st.warning("Please upload a dataset first.")
 
-elif nav_choice == "AI Report":
-    if (("df" in st.session_state) or ("pdf_text" in st.session_state)) and ai_ready:
-        prompt = st.text_area("Enter your analysis prompt:", "Summarize the key insights.")
-        if st.button("Generate Report"):
-            with st.spinner("Generating AI report..."):
-                try:
-                    model = genai.GenerativeModel("gemini-pro")
-                    input_text = ""
-                    if "df" in st.session_state:
-                        input_text = st.session_state.df.to_csv(index=False)
-                    elif "pdf_text" in st.session_state:
-                        input_text = st.session_state.pdf_text
-                    response = model.generate_content(f"{prompt}\n\nData:\n{input_text[:2000]}")
-                    st.subheader("AI-Generated Report")
-                    st.write(response.text)
-                except Exception as e:
-                    st.error(f"AI report error: {e}")
-    elif not ai_ready:
-        st.error("AI not available. Configure GOOGLE_API_KEY or service account.")
-    else:
-        st.warning("Please upload a file first.")
-
-elif nav_choice == "Download":
-    if "df" in st.session_state:
-        csv = st.session_state.df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download CSV", csv, "insights.csv", "text/csv", key="download-csv")
-    elif "pdf_text" in st.session_state:
-        txt = st.session_state.pdf_text.encode("utf-8")
-        st.download_button("Download Text", txt, "document.txt", "text/plain", key="download-txt")
-    else:
-        st.warning("Please upload a file first.")
-
-st.markdown("""
-<footer>
-Developed by Ecothane Team - 1M1B Green Interns
-</footer>
-""", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Developed by Ecothane Team - 1M1B Green Interns</div>", unsafe_allow_html=True)
