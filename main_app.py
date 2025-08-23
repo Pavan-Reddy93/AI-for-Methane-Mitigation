@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import google.generativeai as genai
 import json
 import PyPDF2
-import io
 
 
 st.set_page_config(page_title="AI Data Analyzer", layout="wide")
@@ -19,12 +18,12 @@ else:
     try:
         google_creds = json.loads(st.secrets["google"]["credentials"])
         ai_ready = True
-        st.warning(" No GOOGLE_API_KEY found. Using service account for GCP access.")
+        st.warning("No GOOGLE_API_KEY found. Using service account for GCP access.")
     except Exception:
         ai_ready = False
-        st.error(" Google API not configured. AI features disabled.")
+        st.error("Google API not configured. AI features disabled.")
 
--
+
 st.markdown("""
     <style>
     body {
@@ -76,10 +75,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-st.title(" AI Data Analyzer: Smart Insights from Your Files")
+st.title("AI Data Analyzer: Smart Insights from Your Files")
 
 
-nav_options = [" Upload File", " Analysis Options", " Visualization", " AI Report", " Download"]
+nav_options = ["Upload File", "Analysis Options", "Visualization", "AI Report", "Download"]
 if "nav_choice" not in st.session_state:
     st.session_state.nav_choice = nav_options[0]
 
@@ -98,23 +97,21 @@ if "nav" in query_params and query_params["nav"] in nav_options:
 
 nav_choice = st.session_state.nav_choice
 
-
-if nav_choice == " Upload File":
-    uploaded_file = st.file_uploader(" Upload a file (CSV or PDF)", type=["csv", "pdf"])
+if nav_choice == "Upload File":
+    uploaded_file = st.file_uploader("Upload a file (CSV or PDF)", type=["csv", "pdf"])
     if uploaded_file:
         if uploaded_file.type == "text/csv":
             st.session_state.df = pd.read_csv(uploaded_file)
-            st.success(" CSV uploaded and loaded successfully!")
+            st.success("CSV uploaded and loaded successfully!")
         elif uploaded_file.type == "application/pdf":
             pdf_reader = PyPDF2.PdfReader(uploaded_file)
             pdf_text = ""
             for page in pdf_reader.pages:
                 pdf_text += page.extract_text()
             st.session_state.pdf_text = pdf_text
-            st.success(" PDF uploaded successfully!")
+            st.success("PDF uploaded successfully!")
 
-
-elif nav_choice == " Analysis Options":
+elif nav_choice == "Analysis Options":
     if "df" in st.session_state:
         option = st.radio("Choose analysis type:", ["Descriptive Statistics", "Correlation Analysis"])
         df = st.session_state.df
@@ -130,24 +127,22 @@ elif nav_choice == " Analysis Options":
             except Exception as e:
                 st.error(f"Correlation error: {e}")
     elif "pdf_text" in st.session_state:
-        st.info(" Text extracted from PDF available for AI report.")
+        st.info("Text extracted from PDF available for AI report.")
     else:
-        st.warning(" Please upload a file first.")
+        st.warning("Please upload a file first.")
 
-
-elif nav_choice == " Visualization":
+elif nav_choice == "Visualization":
     if "df" in st.session_state:
         df = st.session_state.df
         st.line_chart(df.select_dtypes(include='number'))
     else:
-        st.warning(" Please upload a dataset first.")
+        st.warning("Please upload a dataset first.")
 
- 
-elif nav_choice == " AI Report":
+elif nav_choice == "AI Report":
     if (("df" in st.session_state) or ("pdf_text" in st.session_state)) and ai_ready:
-        prompt = st.text_area(" Enter your analysis prompt:", "Summarize the key insights.")
+        prompt = st.text_area("Enter your analysis prompt:", "Summarize the key insights.")
         if st.button("Generate Report"):
-            with st.spinner(" Generating AI report..."):
+            with st.spinner("Generating AI report..."):
                 try:
                     model = genai.GenerativeModel("gemini-pro")
                     input_text = ""
@@ -156,28 +151,27 @@ elif nav_choice == " AI Report":
                     elif "pdf_text" in st.session_state:
                         input_text = st.session_state.pdf_text
                     response = model.generate_content(f"{prompt}\n\nData:\n{input_text[:2000]}")
-                    st.subheader(" AI-Generated Report")
+                    st.subheader("AI-Generated Report")
                     st.write(response.text)
                 except Exception as e:
                     st.error(f"AI report error: {e}")
     elif not ai_ready:
-        st.error(" AI not available. Configure GOOGLE_API_KEY or service account.")
+        st.error("AI not available. Configure GOOGLE_API_KEY or service account.")
     else:
-        st.warning(" Please upload a file first.")
+        st.warning("Please upload a file first.")
 
-
-elif nav_choice == " Download":
+elif nav_choice == "Download":
     if "df" in st.session_state:
         csv = st.session_state.df.to_csv(index=False).encode("utf-8")
-        st.download_button(" Download CSV", csv, "insights.csv", "text/csv", key="download-csv")
+        st.download_button("Download CSV", csv, "insights.csv", "text/csv", key="download-csv")
     elif "pdf_text" in st.session_state:
         txt = st.session_state.pdf_text.encode("utf-8")
-        st.download_button(" Download Text", txt, "document.txt", "text/plain", key="download-txt")
+        st.download_button("Download Text", txt, "document.txt", "text/plain", key="download-txt")
     else:
-        st.warning(" Please upload a file first.")
+        st.warning("Please upload a file first.")
 
 st.markdown("""
 <footer>
- Developed by Ecothane Team - 1M1B Green Interns
+Developed by Ecothane Team - 1M1B Green Interns
 </footer>
 """, unsafe_allow_html=True)
